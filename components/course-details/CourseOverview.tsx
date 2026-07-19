@@ -16,9 +16,18 @@ const defaultLearningOutcomes = [
   "Integrate seamlessly with third-party APIs and services.",
 ];
 
+interface CourseOverviewProps {
+  course: {
+    description?: string;
+    learningOutcomes?: string[];
+  };
+}
+
 export default function CourseOverview({
   course,
 }: CourseOverviewProps) {
+
+
   const learningOutcomes =
     course.learningOutcomes?.length
       ? course.learningOutcomes
@@ -39,7 +48,7 @@ export default function CourseOverview({
 
       <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100">
         <h3 className="text-xl font-bold text-gray-900 mb-6">
-          What you'll learn
+          What youll learn
         </h3>
 
         <div className="grid sm:grid-cols-2 gap-4">
