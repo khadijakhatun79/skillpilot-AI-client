@@ -1,54 +1,113 @@
 "use client";
-import { motion } from 'framer-motion';
-import CourseCard from '@/components/ui/CourseCard';
-import Link from 'next/link';
 
-const placeholderCourses = [
-  { id: '1', title: 'Machine Learning Fundamentals', category: 'Data Science', duration: '8 Weeks', rating: 4.8 },
-  { id: '2', title: 'Advanced React Patterns', category: 'Web Development', duration: '6 Weeks', rating: 4.9 },
-  { id: '3', title: 'Cloud Architecture with AWS', category: 'Cloud Computing', duration: '10 Weeks', rating: 4.7 },
-  { id: '4', title: 'UI/UX Design Systems', category: 'Design', duration: '4 Weeks', rating: 4.9 },
-];
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import CourseCard from "@/components/ui/CourseCard";
+
+interface Course {
+  _id: string;
+  title: string;
+  category: string;
+  level: string;
+  duration: string;
+  rating: number;
+  thumbnail: string;
+}
 
 export default function PopularCourses() {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/courses?limit=4&sort=rating`,
+          {
+            cache: "no-store",
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch courses");
+        }
+
+        const result = await res.json();
+
+        setCourses(result.data || []);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
   return (
     <section className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: true }}
             className="max-w-2xl"
           >
-            <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">Popular Courses</h2>
-            <p className="mt-4 text-xl text-slate-600">Discover our most highly-rated programs chosen by thousands of learners.</p>
+            <h2 className="text-3xl font-bold text-slate-900">
+              Popular Courses
+            </h2>
+
+            <p className="mt-4 text-slate-600 text-lg">
+              Discover our highest rated courses.
+            </p>
           </motion.div>
-          <motion.div 
+
+          <motion.div
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: true }}
             className="mt-6 md:mt-0"
           >
-            <Link href="/courses" className="text-indigo-600 font-semibold hover:text-indigo-700 flex items-center group">
-              View all courses <span aria-hidden="true" className="ml-1 group-hover:translate-x-1 transition-transform">&rarr;</span>
+            <Link
+              href="/courses"
+              className="text-indigo-600 font-semibold hover:text-indigo-700"
+            >
+              View All Courses →
             </Link>
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {placeholderCourses.map((course, index) => (
-            <motion.div
-              key={course.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
-              <CourseCard {...course} />
-            </motion.div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-10">Loading...</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {courses.map((course, index) => (
+              <motion.div
+                key={course._id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{
+                  duration: 0.4,
+                  delay: index * 0.1,
+                }}
+              >
+                <CourseCard
+                  id={course._id}
+                  title={course.title}
+                  category={course.category}
+                  level={course.level}
+                  duration={course.duration}
+                  rating={course.rating}
+                  thumbnail={course.thumbnail}
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

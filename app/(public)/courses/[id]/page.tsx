@@ -1,54 +1,188 @@
-import CourseHero from '@/components/course-details/CourseHero';
-import CourseOverview from '@/components/course-details/CourseOverview';
-import CourseCurriculum from '@/components/course-details/CourseCurriculum';
-import CourseReviews from '@/components/course-details/CourseReviews';
-import RelatedCourses from '@/components/course-details/RelatedCourses';
-import AILearningSummary from '@/components/course-details/AILearningSummary';
-import NextCourseCard from '@/components/course-details/NextCourseCard';
+import { notFound } from "next/navigation";
 
-export const metadata = {
-  title: 'Course Details - SkillPilot AI',
-  description: 'View course curriculum, reviews, and enroll.',
-};
+import CourseHero from "@/components/course-details/CourseHero";
+import CourseOverview from "@/components/course-details/CourseOverview";
+import CourseCurriculum from "@/components/course-details/CourseCurriculum";
+import CourseReviews from "@/components/course-details/CourseReviews";
+import RelatedCourses from "@/components/course-details/RelatedCourses";
+import AILearningSummary from "@/components/course-details/AILearningSummary";
+import NextCourseCard from "@/components/course-details/NextCourseCard";
 
-export default function CourseDetailsPage({ params }: { params: { id: string } }) {
-  // Mock data for the specific course based on ID (Placeholder)
-  const courseData = {
-    title: 'Advanced Web Development Architecture',
-    category: 'Web Development',
-    level: 'Advanced',
-    duration: '10 Weeks',
-    rating: 4.9,
-    students: '12,500+'
+interface PageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+
+async function getCourse(id: string) {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    if (!apiUrl) {
+      throw new Error("API URL is missing");
+    }
+
+    const res = await fetch(
+      `${apiUrl}/api/courses/${id}`,
+      {
+        cache: "no-store",
+      }
+    );
+
+
+    if (!res.ok) {
+      return null;
+    }
+
+
+    const result = await res.json();
+
+    return result?.data || null;
+
+
+  } catch (error) {
+
+    console.error("Failed to fetch course:", error);
+
+    return null;
+  }
+}
+
+
+
+export async function generateMetadata({
+  params,
+}: PageProps) {
+
+  const { id } = await params;
+
+  const course = await getCourse(id);
+
+
+  return {
+    title: course?.title 
+      ? `${course.title} | SkillPilot AI`
+      : "Course Details | SkillPilot AI",
+
+    description:
+      course?.description ||
+      "Learn courses with SkillPilot AI",
   };
+}
+
+
+
+export default async function CourseDetailsPage({
+  params,
+}: PageProps) {
+
+
+  const { id } = await params;
+
+
+  const course = await getCourse(id);
+
+
+
+  if (!course) {
+    notFound();
+  }
+
+
 
   return (
-    <div className="min-h-screen bg-white">
-      <CourseHero {...courseData} />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex flex-col lg:flex-row gap-12">
-          
-          {/* Main Content (Left Column) */}
-          <div className="lg:w-2/3">
-            <CourseOverview />
-            <CourseCurriculum />
-            <CourseReviews />
+    <main className="min-h-screen bg-white">
+
+
+      {/* Hero Section */}
+      <CourseHero course={course} />
+
+
+
+      <section className="max-w-7xl mx-auto px-4 lg:px-8 py-14">
+
+        <div className="grid lg:grid-cols-3 gap-10">
+
+
+          {/* Left Content */}
+
+          <div className="lg:col-span-2 space-y-10">
+
+
+            <CourseOverview 
+              course={course} 
+            />
+
+
+
+            <CourseCurriculum
+              curriculum={
+                course.curriculum || []
+              }
+            />
+
+
+
+            <CourseReviews
+              reviews={
+                course.reviews || []
+              }
+            />
+
+
           </div>
 
-          {/* Sidebar (Right Column) */}
-          <div className="lg:w-1/3">
-            <div className="sticky top-24">
-              <AILearningSummary />
-              <NextCourseCard />
+
+
+
+          {/* Sidebar */}
+
+          <aside>
+
+
+            <div className="sticky top-24 space-y-6">
+
+
+              <AILearningSummary
+                course={course}
+              />
+
+
+
+              <NextCourseCard
+                course={course}
+              />
+
+
             </div>
-          </div>
-          
-        </div>
-      </div>
 
-      {/* Full-width related courses section at the bottom */}
-      <RelatedCourses />
-    </div>
+
+          </aside>
+
+
+
+        </div>
+
+
+      </section>
+
+
+
+
+
+      <RelatedCourses
+
+        category={course.category}
+
+        currentId={
+          course._id || course.id
+        }
+
+      />
+
+
+
+    </main>
   );
 }
