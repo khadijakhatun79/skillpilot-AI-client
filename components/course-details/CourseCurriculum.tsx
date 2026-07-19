@@ -1,8 +1,32 @@
 "use client";
-import { useState } from 'react';
-import { ChevronDown, PlayCircle, FileText, Lock } from 'lucide-react';
 
-const curriculum = [
+import { useState } from "react";
+import {
+  ChevronDown,
+  PlayCircle,
+  FileText,
+  Lock,
+} from "lucide-react";
+
+interface Lesson {
+  type: "video" | "reading";
+  title: string;
+  duration: string;
+  free: boolean;
+}
+
+interface Module {
+  title: string;
+  lessons: number;
+  duration: string;
+  items: Lesson[];
+}
+
+interface CourseCurriculumProps {
+  curriculum?: Module[];
+}
+
+const defaultCurriculum: Module[] = [
   {
     title: "Module 1: Introduction & Setup",
     lessons: 4,
@@ -12,7 +36,7 @@ const curriculum = [
       { type: "video", title: "Environment Setup", duration: "15:00", free: true },
       { type: "reading", title: "Required Tools Checklist", duration: "10:00", free: false },
       { type: "video", title: "Your First Application", duration: "15:00", free: false },
-    ]
+    ],
   },
   {
     title: "Module 2: Core Concepts",
@@ -25,7 +49,7 @@ const curriculum = [
       { type: "video", title: "Data Fetching Strategies", duration: "30:00", free: false },
       { type: "video", title: "Routing Fundamentals", duration: "25:00", free: false },
       { type: "reading", title: "Module 2 Quiz", duration: "20:00", free: false },
-    ]
+    ],
   },
   {
     title: "Module 3: Advanced Patterns",
@@ -37,54 +61,98 @@ const curriculum = [
       { type: "video", title: "State Management Advanced", duration: "40:00", free: false },
       { type: "reading", title: "Testing Methodologies", duration: "30:00", free: false },
       { type: "video", title: "Deployment Pipeline", duration: "45:00", free: false },
-    ]
-  }
+    ],
+  },
 ];
 
-export default function CourseCurriculum() {
+export default function CourseCurriculum({
+  curriculum,
+}: CourseCurriculumProps) {
   const [openModule, setOpenModule] = useState<number | null>(0);
+
+  const modules =
+    curriculum && curriculum.length > 0
+      ? curriculum
+      : defaultCurriculum;
+
+  const totalModules = modules.length;
+
+  const totalLessons = modules.reduce(
+    (sum, module) => sum + module.lessons,
+    0
+  );
 
   return (
     <section className="py-12 border-b border-gray-100">
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">Curriculum</h2>
-      <p className="text-gray-500 mb-8">3 Modules • 15 Lessons • 6h 30m total length</p>
-      
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        Curriculum
+      </h2>
+
+      <p className="text-gray-500 mb-8">
+        {totalModules} Modules • {totalLessons} Lessons
+      </p>
+
       <div className="space-y-4">
-        {curriculum.map((mod, index) => {
+        {modules.map((module, index) => {
           const isOpen = openModule === index;
+
           return (
-            <div key={index} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+            <div
+              key={index}
+              className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm"
+            >
               <button
-                className="w-full px-6 py-5 flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition-colors focus:outline-none"
-                onClick={() => setOpenModule(isOpen ? null : index)}
+                onClick={() =>
+                  setOpenModule(isOpen ? null : index)
+                }
+                className="w-full px-6 py-5 flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition"
               >
-                <div className="flex flex-col items-start">
-                  <span className="font-bold text-gray-900 text-left">{mod.title}</span>
-                  <span className="text-sm text-gray-500 mt-1">{mod.lessons} lessons • {mod.duration}</span>
+                <div className="text-left">
+                  <h3 className="font-semibold text-gray-900">
+                    {module.title}
+                  </h3>
+
+                  <p className="text-sm text-gray-500 mt-1">
+                    {module.lessons} lessons • {module.duration}
+                  </p>
                 </div>
-                <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+
+                <ChevronDown
+                  className={`w-5 h-5 transition-transform ${
+                    isOpen ? "rotate-180" : ""
+                  }`}
+                />
               </button>
-              
+
               {isOpen && (
-                <div className="border-t border-gray-200 divide-y divide-gray-100">
-                  {mod.items.map((item, itemIndex) => (
-                    <div key={itemIndex} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                <div className="divide-y divide-gray-100">
+                  {module.items.map((item, i) => (
+                    <div
+                      key={i}
+                      className="flex justify-between items-center px-6 py-4 hover:bg-gray-50"
+                    >
                       <div className="flex items-center">
-                        {item.type === 'video' ? (
-                          <PlayCircle className={`w-5 h-5 mr-3 ${item.free ? 'text-indigo-600' : 'text-gray-400'}`} />
+                        {item.type === "video" ? (
+                          <PlayCircle className="w-5 h-5 mr-3 text-indigo-600" />
                         ) : (
-                          <FileText className={`w-5 h-5 mr-3 ${item.free ? 'text-indigo-600' : 'text-gray-400'}`} />
+                          <FileText className="w-5 h-5 mr-3 text-indigo-600" />
                         )}
-                        <span className={`text-sm font-medium ${item.free ? 'text-indigo-600 cursor-pointer hover:underline' : 'text-gray-700'}`}>
-                          {item.title}
-                        </span>
+
+                        <span>{item.title}</span>
                       </div>
-                      <div className="flex items-center text-sm text-gray-500">
-                        {item.free ? (
-                          <span className="mr-4 text-xs font-bold text-indigo-600 uppercase tracking-wider hidden sm:inline-block">Preview</span>
-                        ) : null}
-                        <span className="mr-3">{item.duration}</span>
-                        {!item.free && <Lock className="w-4 h-4 text-gray-400" />}
+
+                      <div className="flex items-center gap-3 text-sm text-gray-500">
+                        {item.free && (
+                          <span className="text-indigo-600 font-medium">
+                            Preview
+                          </span>
+                        )}
+
+                        <span>{item.duration}</span>
+
+                        {!item.free && (
+                          <Lock className="w-4 h-4" />
+                        )}
                       </div>
                     </div>
                   ))}

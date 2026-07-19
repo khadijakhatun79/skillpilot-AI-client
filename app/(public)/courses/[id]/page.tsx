@@ -110,9 +110,7 @@ export default async function CourseDetailsPage({
           <div className="lg:col-span-2 space-y-10">
 
 
-            <CourseOverview 
-              course={course} 
-            />
+            <CourseOverview course={course} />
 
 
 
